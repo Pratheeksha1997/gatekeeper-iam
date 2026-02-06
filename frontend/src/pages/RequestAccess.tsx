@@ -1,33 +1,47 @@
 import { useState } from "react"
+import { requestAccess } from "../api/gatekeeper"
 
 export default function RequestAccess() {
   const [email, setEmail] = useState("")
   const [project, setProject] = useState("")
   const [reason, setReason] = useState("")
-  const [submitted, setSubmitted] = useState(false)
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    console.log("Access Request:", {
-      email,
-      application: "CURSOR",
-      project,
-      reason,
-    })
+    try {
+      await requestAccess({
+        email,
+        application: "CURSOR",
+        project,
+        reason,
+      })
 
-    setSubmitted(true)
-    setEmail("")
-    setProject("")
-    setReason("")
+      setStatus("success")
+      setEmail("")
+      setProject("")
+      setReason("")
+    } catch (err) {
+      console.error(err)
+      setStatus("error")
+    }
   }
 
   return (
     <div style={{ padding: "16px", maxWidth: "500px" }}>
       <h2>Request Access</h2>
 
-      {submitted && (
-        <p style={{ color: "green" }}>Request submitted successfully</p>
+      {status === "success" && (
+        <p style={{ color: "green" }}>
+          Access request submitted successfully.
+        </p>
+      )}
+
+      {status === "error" && (
+        <p style={{ color: "red" }}>
+          Failed to submit request. Try again.
+        </p>
       )}
 
       <form onSubmit={handleSubmit}>
